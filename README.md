@@ -8,7 +8,7 @@ This GitHub Action checks for open **CodeScanning** alerts in a repository and v
 - Validates alerts against configurable thresholds for critical and high severities.
 - Dynamically supports all severity levels (e.g., medium, low, etc.).
 - Works with both Pull Request workflows and direct commit workflows.
-- Updates or creates a **Check Run** in GitHub with the results.
+- Updates or creates a **Comment** in GitHub with the results.
 - Allows skipping failures in Pull Requests with the `do_not_break_pr_check` option.
 
 ---
@@ -31,7 +31,6 @@ The following inputs can be configured in the workflow:
 | `github_token`         | The GitHub token used to authenticate API requests.                        | No       | `${{ github.token }}`           |
 | `owner`                | The owner of the repository.                                               | No       | `${{ github.repository_owner }}`|
 | `repo`                 | The name of the repository.                                                | No       | `${{ github.event.repository.name }}` |
-| `sha`                  | The commit SHA to check for alerts.                                        | No       | `${{ github.sha }}`             |
 | `max_high_alerts`      | Maximum allowed high severity alerts.                                      | No       | None (will only notify but will not break)                             |
 | `max_critical_alerts`  | Maximum allowed critical severity alerts.                                  | No       | None (will only notify but will not break)                             |                              |
 | `max_medium_alerts`      | Maximum allowed medium severity alerts.                                      | No       | None (will only notify but will not break)                             |

@@ -31843,7 +31843,6 @@ async function run() {
         const token = core.getInput("github_token");
         const owner = core.getInput("owner");
         const repo = core.getInput("repo");
-        const sha = core.getInput("sha");
         const maxAlertsThreshold = {};
         const doNotBreakPRCheck = core.getInput("do_not_break_pr_check") === "true";
         ["critical", "high", "medium", "low", "note"].forEach((severity) => {

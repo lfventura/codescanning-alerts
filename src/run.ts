@@ -7,7 +7,6 @@ export async function run(): Promise<void> {
     const token: string = core.getInput("github_token");
     const owner: string = core.getInput("owner");
     const repo: string = core.getInput("repo");
-    const sha: string = core.getInput("sha");
     const maxAlertsThreshold: Record<string, number> = {};
     const doNotBreakPRCheck: boolean =
       core.getInput("do_not_break_pr_check") === "true";
