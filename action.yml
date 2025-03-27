@@ -47,6 +47,7 @@ outputs:
   high_alerts:
     description: 'Number of high severity alerts'
   medium_alerts:
+    description: 'Number of medium severity alerts'
   low_alerts:
     description: 'Number of low severity alerts'
   note_alerts:
