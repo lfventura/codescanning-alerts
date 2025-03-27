@@ -100,7 +100,7 @@ export async function run(): Promise<void> {
     // Prepare output summary dynamically
     const summaryLines = Object.entries(severityCounts).map(
       ([severity, count]) =>
-        `- ${severity.charAt(0).toUpperCase() + severity.slice(1)} Total Alerts: ${count}, Threshold: ${
+        `- **${severity.toUpperCase()}** Total Alerts: ${count}, Threshold: ${
           isNaN(maxAlertsThreshold[severity])
             ? "Notify only"
             : `Breaks when > ${maxAlertsThreshold[severity]}`
@@ -108,8 +108,8 @@ export async function run(): Promise<void> {
     );
 
     // Prepare output summary
-    const summaryTitleSuccess = `# 🟢 CodeScanning Alerts 🟢`;
-    const summaryTitleFailure = `# 🚨 CodeScanning Alerts 🚨`;
+    const summaryTitleSuccess = `# 🟢 CodeScanning Alerts (Main Branch) 🟢`;
+    const summaryTitleFailure = `# 🔴 CodeScanning Alerts (Main Branch) 🔴`;
 
     // BEGIN: Define helper variable for summary breakingMessage
     const breakingMessage =
@@ -130,7 +130,7 @@ ${nonBreakingAlerts.join("\n")}
         : "";
     // END: Define helper variable for summary nonBreakingMessage
     // BEGIN: Define helper variable for summary breakingMessagePRFiles
-    const BreakingMessagePRFiles =
+    const breakingMessagePRFiles =
       breakingAlertsPRFiles.length > 0 || nonBreakingAlertsPRFiles.length > 0
         ? `
 ### The following alerts are for files that are part of this PR, because of this their status on main are not being validated, but take in consideration that if the fixes are not being done, the next release maybe blocked until solution:
@@ -140,19 +140,14 @@ ${nonBreakingAlertsPRFiles.join("\n")}
         : "";
     //  END: Define helper variable for summary breakingMessagePRFiles
 
+    core.info(`summa: ${summaryLines.length}`);
+
     // BEGIN: Define summary message
     const summary = `
 ${breakingAlerts.length > 0 ? summaryTitleFailure : summaryTitleSuccess}
 ## Summary
-- Total Alerts: ${alerts.length}
-${summaryLines.join("\n")}
-
-${breakingMessage}
-
-${nonBreakingMessage}
-
-${BreakingMessagePRFiles}
-        `;
+- **TOTAL** Alerts: ${alerts.length}
+${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.length > 0 ? breakingMessage : ""}${nonBreakingMessage.length > 0 ? nonBreakingMessage : ""}${breakingMessagePRFiles.length > 0 ? breakingMessagePRFiles : ""}`;
     // END: Define summary message
 
     let conclusion: "failure" | "success";
