@@ -34,10 +34,10 @@ describe("run", () => {
         pulls: {
           listFiles: jest.fn(),
         },
-        checks: {
-          listForRef: jest.fn(),
-          update: jest.fn(),
-          create: jest.fn(),
+        issues: {
+          listComments: jest.fn(), // Adiciona o mock para listComments
+          createComment: jest.fn(), // Adiciona o mock para createComment
+          updateComment: jest.fn(), // Adiciona o mock para updateComment
         },
       },
     };
@@ -63,9 +63,6 @@ describe("run", () => {
     });
 
     mockOctokit.paginate.mockResolvedValueOnce([]); // No alerts
-    mockOctokit.rest.checks.listForRef.mockResolvedValueOnce({
-      data: { check_runs: [] },
-    });
 
     await run();
     // console.log("Mock calls:", mockSetOutput.mock.calls);
@@ -110,9 +107,6 @@ describe("run", () => {
         most_recent_instance: { location: { path: "file3.js" } },
       },
     ]); // One critical alert
-    mockOctokit.rest.checks.listForRef.mockResolvedValueOnce({
-      data: { check_runs: [] },
-    });
 
     await run();
 
@@ -149,9 +143,6 @@ describe("run", () => {
         most_recent_instance: { location: { path: "file7.js" } },
       },
     ]); // One critical alert
-    mockOctokit.rest.checks.listForRef.mockResolvedValueOnce({
-      data: { check_runs: [] },
-    });
 
     await run();
     // console.log("Mock calls:", mockSetOutput.mock.calls);
@@ -185,28 +176,49 @@ describe("run", () => {
       },
     };
 
-    mockOctokit.rest.checks.listForRef.mockImplementation(
-      ({ owner, repo, ref }: { owner: string; repo: string; ref: string }) => {
-        if (
-          owner === "test-owner" &&
-          repo === "test-repo" &&
-          ref === "test-sha"
-        ) {
+    mockOctokit.rest.issues.listComments.mockImplementation(
+      ({ owner, repo, issue_number }: { owner: string; repo: string; issue_number: number }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
+          return Promise.resolve({
+            data: [
+              {
+                id: 1,
+                body: "<!-- Code Scanning Alerts Comment -->\nExisting comment body",
+              },
+            ],
+          });
+        }
+        return Promise.resolve({ data: [] });
+      }
+    );
+    
+    mockOctokit.rest.issues.createComment.mockImplementation(
+      ({ owner, repo, issue_number, body }: { owner: string; repo: string; issue_number: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
           return Promise.resolve({
             data: {
-              check_runs: [
-                {
-                  id: 12345,
-                  name: "Code Scanning Alerts",
-                  conclusion: "success",
-                },
-              ],
+              id: 2,
+              body,
             },
           });
         }
-        return Promise.resolve({ data: { check_runs: [] } });
-      },
+        return Promise.reject(new Error("Failed to create comment"));
+      }
     );
+    
+    mockOctokit.rest.issues.updateComment.mockImplementation(
+      ({ owner, repo, comment_id, body }: { owner: string; repo: string; comment_id: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && comment_id === 1) {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              body,
+            },
+          });
+        }
+        return Promise.reject(new Error("Failed to update comment"));
+      }
+    )
 
     mockOctokit.paginate.mockImplementation((fn: any) => {
       if (fn === mockOctokit.rest.pulls.listFiles) {
@@ -229,6 +241,7 @@ describe("run", () => {
     });
 
     await run();
+    console.log("Mock calls:", mockSetOutput.mock.calls);
     expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
@@ -257,28 +270,49 @@ describe("run", () => {
       },
     };
 
-    mockOctokit.rest.checks.listForRef.mockImplementation(
-      ({ owner, repo, ref }: { owner: string; repo: string; ref: string }) => {
-        if (
-          owner === "test-owner" &&
-          repo === "test-repo" &&
-          ref === "test-sha"
-        ) {
+    mockOctokit.rest.issues.listComments.mockImplementation(
+      ({ owner, repo, issue_number }: { owner: string; repo: string; issue_number: number }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
+          return Promise.resolve({
+            data: [
+              {
+                id: 1,
+                body: "<!-- Code Scanning Alerts Comment -->\nExisting comment body",
+              },
+            ],
+          });
+        }
+        return Promise.resolve({ data: [] });
+      }
+    );
+    
+    mockOctokit.rest.issues.createComment.mockImplementation(
+      ({ owner, repo, issue_number, body }: { owner: string; repo: string; issue_number: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
           return Promise.resolve({
             data: {
-              check_runs: [
-                {
-                  id: 12345,
-                  name: "Code Scanning Alerts",
-                  conclusion: "success",
-                },
-              ],
+              id: 2,
+              body,
             },
           });
         }
-        return Promise.resolve({ data: { check_runs: [] } });
-      },
+        return Promise.reject(new Error("Failed to create comment"));
+      }
     );
+    
+    mockOctokit.rest.issues.updateComment.mockImplementation(
+      ({ owner, repo, comment_id, body }: { owner: string; repo: string; comment_id: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && comment_id === 1) {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              body,
+            },
+          });
+        }
+        return Promise.reject(new Error("Failed to update comment"));
+      }
+    )
 
     mockOctokit.paginate.mockImplementation((fn: any) => {
       if (fn === mockOctokit.rest.pulls.listFiles) {
@@ -330,28 +364,49 @@ describe("run", () => {
       },
     };
 
-    mockOctokit.rest.checks.listForRef.mockImplementation(
-      ({ owner, repo, ref }: { owner: string; repo: string; ref: string }) => {
-        if (
-          owner === "test-owner" &&
-          repo === "test-repo" &&
-          ref === "test-sha"
-        ) {
+    mockOctokit.rest.issues.listComments.mockImplementation(
+      ({ owner, repo, issue_number }: { owner: string; repo: string; issue_number: number }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
+          return Promise.resolve({
+            data: [
+              {
+                id: 1,
+                body: "<!-- Code Scanning Alerts Comment -->\nExisting comment body",
+              },
+            ],
+          });
+        }
+        return Promise.resolve({ data: [] });
+      }
+    );
+    
+    mockOctokit.rest.issues.createComment.mockImplementation(
+      ({ owner, repo, issue_number, body }: { owner: string; repo: string; issue_number: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
           return Promise.resolve({
             data: {
-              check_runs: [
-                {
-                  id: 12345,
-                  name: "Code Scanning Alerts",
-                  conclusion: "success",
-                },
-              ],
+              id: 2,
+              body,
             },
           });
         }
-        return Promise.resolve({ data: { check_runs: [] } });
-      },
+        return Promise.reject(new Error("Failed to create comment"));
+      }
     );
+    
+    mockOctokit.rest.issues.updateComment.mockImplementation(
+      ({ owner, repo, comment_id, body }: { owner: string; repo: string; comment_id: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && comment_id === 1) {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              body,
+            },
+          });
+        }
+        return Promise.reject(new Error("Failed to update comment"));
+      }
+    )
 
     mockOctokit.paginate.mockImplementation((fn: any) => {
       if (fn === mockOctokit.rest.pulls.listFiles) {
@@ -414,28 +469,49 @@ describe("run", () => {
       },
     };
 
-    mockOctokit.rest.checks.listForRef.mockImplementation(
-      ({ owner, repo, ref }: { owner: string; repo: string; ref: string }) => {
-        if (
-          owner === "test-owner" &&
-          repo === "test-repo" &&
-          ref === "test-sha"
-        ) {
+    mockOctokit.rest.issues.listComments.mockImplementation(
+      ({ owner, repo, issue_number }: { owner: string; repo: string; issue_number: number }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
+          return Promise.resolve({
+            data: [
+              {
+                id: 1,
+                body: "<!-- Code Scanning Alerts Comment -->\nExisting comment body",
+              },
+            ],
+          });
+        }
+        return Promise.resolve({ data: [] });
+      }
+    );
+    
+    mockOctokit.rest.issues.createComment.mockImplementation(
+      ({ owner, repo, issue_number, body }: { owner: string; repo: string; issue_number: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
           return Promise.resolve({
             data: {
-              check_runs: [
-                {
-                  id: 12345,
-                  name: "Code Scanning Alerts",
-                  conclusion: "success",
-                },
-              ],
+              id: 2,
+              body,
             },
           });
         }
-        return Promise.resolve({ data: { check_runs: [] } });
-      },
+        return Promise.reject(new Error("Failed to create comment"));
+      }
     );
+    
+    mockOctokit.rest.issues.updateComment.mockImplementation(
+      ({ owner, repo, comment_id, body }: { owner: string; repo: string; comment_id: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && comment_id === 1) {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              body,
+            },
+          });
+        }
+        return Promise.reject(new Error("Failed to update comment"));
+      }
+    )
 
     mockOctokit.paginate.mockImplementation((fn: any) => {
       if (fn === mockOctokit.rest.pulls.listFiles) {
@@ -470,6 +546,95 @@ describe("run", () => {
     expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "failure");
+  });
+
+  it("should handle PR-specific alerts and not fail due do_not_break_pr_checks, creating new comment", async () => {
+    mockGetInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        github_token: "fake-token",
+        owner: "test-owner",
+        repo: "test-repo",
+        sha: "test-sha",
+        do_not_break_pr_check: "true",
+        max_critical_alerts: "0",
+        max_high_alerts: "0",
+        max_medium_alerts: "0",
+        max_low_alerts: "0",
+        max_note_alerts: "0",
+      };
+      return inputs[name];
+    });
+
+    github.context.payload = {
+      pull_request: {
+        number: 123,
+      },
+    };
+
+    mockOctokit.rest.issues.listComments.mockImplementation(
+      ({ owner, repo, issue_number }: { owner: string; repo: string; issue_number: number }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
+          return Promise.resolve({
+            data: [],
+          });
+        }
+        return Promise.resolve({ data: [] });
+      }
+    );
+    
+    mockOctokit.rest.issues.createComment.mockImplementation(
+      ({ owner, repo, issue_number, body }: { owner: string; repo: string; issue_number: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && issue_number === 123) {
+          return Promise.resolve({
+            data: {
+              id: 2,
+              body,
+            },
+          });
+        }
+        return Promise.reject(new Error("Failed to create comment"));
+      }
+    );
+    
+    mockOctokit.rest.issues.updateComment.mockImplementation(
+      ({ owner, repo, comment_id, body }: { owner: string; repo: string; comment_id: number; body: string }) => {
+        if (owner === "test-owner" && repo === "test-repo" && comment_id === 1) {
+          return Promise.resolve({
+            data: {
+              id: 1,
+              body,
+            },
+          });
+        }
+        return Promise.reject(new Error("Failed to update comment"));
+      }
+    )
+
+    mockOctokit.paginate.mockImplementation((fn: any) => {
+      if (fn === mockOctokit.rest.pulls.listFiles) {
+        // Retorna os arquivos do PR
+        return Promise.resolve([{ filename: "file4.js" }]);
+      } else if (fn === mockOctokit.rest.codeScanning.listAlertsForRepo) {
+        // Retorna os alertas de segurança
+        return Promise.resolve([
+          {
+            rule: {
+              security_severity_level: "critical",
+              description: "Critical issue",
+            },
+            html_url: "http://example.com/1",
+            most_recent_instance: { location: { path: "file5.js" } },
+          },
+        ]);
+      }
+      return Promise.resolve([]);
+    });
+
+    await run();
+    console.log("Mock calls:", mockSetOutput.mock.calls);
+    expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
+    expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
+    expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
   });
 
   it("should handle errors gracefully", async () => {
