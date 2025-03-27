@@ -31970,6 +31970,42 @@ ${BreakingMessagePRFiles}
                 }
             });
         }
+        // Comment logic
+        if (!prNumber) {
+            core.info('No PR number found. Skipping comment creation.');
+        }
+        else {
+            const commentIdentifier = "<!-- Code Scanning Alerts Comment lfventura -->"; // Unique identifier
+            // Get all PR Comments
+            const { data: comments } = await octokit.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: prNumber,
+            });
+            // Procura por um comentário existente criado por esta Action
+            const existingComment = comments.find((comment) => comment.body?.startsWith(commentIdentifier));
+            if (existingComment) {
+                // Updates the existing comment
+                await octokit.rest.issues.updateComment({
+                    owner,
+                    repo,
+                    comment_id: existingComment.id,
+                    body: summary,
+                });
+                console.log(`Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`);
+            }
+            else {
+                // Creates a new comment
+                await octokit.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: prNumber,
+                    body: summary,
+                });
+                console.log(`Created a new comment on PR #${prNumber}`);
+            }
+        }
+        // Decorator Logic
         if (!prNumber) {
             core.info('No PR number found. Skipping decorator creation.');
         }
