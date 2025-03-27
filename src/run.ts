@@ -209,7 +209,7 @@ ${BreakingMessagePRFiles}
                 owner,
                 repo,
                 comment_id: existingComment.id,
-                body: `${commentIdentifier}\n${summary}`,
+                body: `${body}`,
             });
             core.info(`Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`);
         } else {
@@ -218,7 +218,7 @@ ${BreakingMessagePRFiles}
                 owner,
                 repo,
                 issue_number: prNumber,
-                body: `${commentIdentifier}\n${summary}`,
+                body: `${body}`,
             });
             core.info(`Created a new comment on PR #${prNumber}`);
             
