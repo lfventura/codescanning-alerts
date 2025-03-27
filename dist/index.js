@@ -31928,7 +31928,7 @@ ${breakingAlerts.join("\n")}
         // BEGIN: Define helper variable for summary nonBreakingMessage
         const nonBreakingMessage = nonBreakingAlerts.length > 0
             ? `
-## Please consider these issues for the upcoming service update:
+## Please consider these issues for the upcoming service update, the next release maybe blocked until solution:
 ${nonBreakingAlerts.join("\n")}
         `
             : "";
