@@ -1,0 +1,50 @@
+
+name: CodeQL
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: '33 14 2 * *'
+
+jobs:
+  languages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: lfventura/list-repository-languages@main
+        id: list-languages
+    outputs:
+      languages_codeql: ${{ steps.list-languages.outputs.languages_codeql }}
+      codeql_supported: ${{ steps.list-languages.outputs.codeql_supported }}
+
+  analyze:
+    if: needs.languages.outputs.codeql_supported == 'true'
+    needs: [languages]
+    name: Analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ${{ fromJSON(needs.languages.outputs.languages_codeql) }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v3
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3      

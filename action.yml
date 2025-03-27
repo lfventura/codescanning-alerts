@@ -1,0 +1,65 @@
+name: 'Check CodeScanning Alerts'
+description: 'Check for open CodeScanning alerts and validate against thresholds.'
+author: 'Lucas Ventura'
+inputs:
+  github_token:
+    description: The GitHub token used to create an authenticated client
+    default: ${{ github.token }}
+    required: false
+  owner:
+    description: The owner of the repository
+    default: ${{ github.repository_owner }}
+    required: false
+  repo:
+    description: The name of the repository
+    default: ${{ github.event.repository.name }}
+    required: false
+  sha:
+    description: The commit SHA to check for alerts
+    default: ${{ github.sha }}
+    required: false
+  max_high_alerts:
+    description: 'Maximum allowed high severity alerts'
+    required: false
+  max_critical_alerts:
+    description: 'Maximum allowed critical severity alerts'
+    required: false
+  max_medium_alerts:
+    description: 'Maximum allowed medium severity alerts'
+    required: false
+  max_low_alerts:
+    description: 'Maximum allowed low severity alerts'
+    required: false
+  max_note_alerts:
+    description: 'Maximum allowed note severity alerts'
+    required: false
+  do_not_break_pr_check:
+    description: 'Do not break the PR check if the thresholds are exceeded'
+    required: false
+    default: false
+    type: boolean
+  
+outputs:
+  total_alerts:
+    description: 'Total number of alerts'
+  critical_alerts:
+    description: 'Number of critical severity alerts'
+    default: 0
+  high_alerts:
+    description: 'Number of high severity alerts'
+    default: 0
+  medium_alerts:
+    description: 'Number of medium severity alerts'
+    default: 0
+  low_alerts:
+    description: 'Number of low severity alerts'
+    default: 0
+  note_alerts:
+    description: 'Number of note severity alerts'
+    default: 0
+runs:
+  using: 'node22'
+  main: 'dist/index.js'
+branding:
+  icon: 'shield'
+  color: 'red'

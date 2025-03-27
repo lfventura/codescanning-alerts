@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2021", // Define a versão do ECMAScript alvo
+    "module": "ESNext", // Usa módulos ES
+    "moduleResolution": "node", // Resolve módulos no estilo Node.js
+    "strict": true, // Ativa verificações estritas
+    "esModuleInterop": true, // Habilita interoperabilidade com CommonJS
+    "skipLibCheck": true, // Ignora verificações de tipo em arquivos de declaração
+    "forceConsistentCasingInFileNames": true, // Força consistência no uso de maiúsculas/minúsculas
+    "outDir": "./dist", // Diretório de saída para arquivos compilados
+    "rootDir": "./src" // Diretório raiz dos arquivos de entrada
+  },
+  "include": ["src"], // Inclui todos os arquivos na pasta src
+  "exclude": ["node_modules", "dist"] // Exclui node_modules e dist
+}

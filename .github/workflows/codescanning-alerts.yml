@@ -1,0 +1,30 @@
+name: Code Scanning Alerts Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-code-scanning-alerts:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Run the custom action
+      - name: Run Code Scanning Alerts Check
+        uses: ./ # Use the current repository as the action
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          max_critical_alerts: 0
+          max_high_alerts: 0
+          max_medium_alerts: 0
+          max_low_alerts: 0
+          max_note_alerts: 0
+          do_not_break_pr_check: false

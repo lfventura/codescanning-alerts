@@ -1,0 +1,35 @@
+{
+  "name": "codescanning-alerts",
+  "version": "1.0.0",
+  "description": "A GitHub Actions module for alerting on repo code scanning open alerts.",
+  "main": "src/main.js",
+  "scripts": {
+    "test": "npx jest",
+    "lint": "eslint src/**/*.ts",
+    "lintfix": "eslint src/**/*.ts --fix",
+    "build": "ncc build src/index.ts --out dist"
+  },
+  "keywords": [
+    "github",
+    "actions",
+    "module"
+  ],
+  "author": "Lucas Ventura",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0"
+  },
+  "devDependencies": {
+    "@github/local-action": "github:github/local-action",
+    "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
+    "@typescript-eslint/parser": "^8.28.0",
+    "@vercel/ncc": "^0.38.3",
+    "eslint": "^9.23.0",
+    "eslint-plugin-prettier": "^5.2.5",
+    "jest": "^29.7.0",
+    "prettier": "^3.5.3",
+    "ts-jest": "^29.3.0"
+  }
+}
