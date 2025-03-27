@@ -7,10 +7,11 @@ export async function run(): Promise<void> {
     const token: string = core.getInput("github_token");
     const owner: string = core.getInput("owner");
     const repo: string = core.getInput("repo");
-    const maxAlertsThreshold: Record<string, number> = {};
     const doNotBreakPRCheck: boolean =
       core.getInput("do_not_break_pr_check") === "true";
-    ["critical", "high", "medium", "low", "note"].forEach((severity) => {
+    const allSeverities = ["critical", "high", "medium", "low", "note"];  
+    const maxAlertsThreshold: Record<string, number> = {};
+      allSeverities.forEach((severity) => {
       maxAlertsThreshold[severity] = parseInt(
         core.getInput(`max_${severity}_alerts`),
         10,
@@ -153,7 +154,7 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
     let conclusion: "failure" | "success";
     conclusion = "success";
     if (!prNumber || (prNumber && !doNotBreakPRCheck)) {
-      ["critical", "high", "medium", "low", "note"].forEach((severity) => {
+     allSeverities.forEach((severity) => {
         if (severityCounts[severity] > maxAlertsThreshold[severity]) {
           conclusion = "failure";
           return;
@@ -214,7 +215,7 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
 
     // Set outputs for the action
     core.setOutput("total_alerts", alerts.length);
-    ["critical", "high", "medium", "low", "note"].forEach((severity) => {
+   allSeverities.forEach((severity) => {
       core.setOutput(`${severity}_alerts`, severityCounts[severity] || 0);
       core.setOutput(
         `${severity}_alerts_threshold`,
