@@ -31993,8 +31993,8 @@ ${BreakingMessagePRFiles}
                     check_run_id: existingCheckRun.id,
                     output: {
                         title: checkRunName,
-                        summary: "I am a Summary",
-                        text: "I am a text"
+                        summary: summary,
+                        // text: "I am a text"
                         // text: summaryLines.join("\n"),
                     },
                     conclusion,
@@ -32015,8 +32015,8 @@ ${BreakingMessagePRFiles}
                         title: checkRunName,
                         // summary,
                         // text: summaryLines.join("\n"),
-                        summary: "I am a Summary",
-                        text: "I am a text"
+                        summary: summary,
+                        // text: "I am a text"
                     },
                 });
                 core.info(`Check Run updated: ${JSON.stringify(response, null, 2)}`);
