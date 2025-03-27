@@ -31987,7 +31987,7 @@ ${BreakingMessagePRFiles}
                     owner,
                     repo,
                     comment_id: existingComment.id,
-                    body: `${existingComment}\n${summary}`,
+                    body: `${commentIdentifier}\n${summary}`,
                 });
                 console.log(`Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`);
             }
@@ -31997,7 +31997,7 @@ ${BreakingMessagePRFiles}
                     owner,
                     repo,
                     issue_number: prNumber,
-                    body: `${existingComment}\n${summary}`,
+                    body: `${commentIdentifier}\n${summary}`,
                 });
                 console.log(`Created a new comment on PR #${prNumber}`);
             }
