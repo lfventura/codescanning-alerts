@@ -32018,12 +32018,12 @@ ${BreakingMessagePRFiles}
         });
         core.info(`summary: ${summary}`);
         core.setOutput("conclusion", conclusion);
-        // Check if alerts exceed thresholds
-        // if (criticalAlerts.length > maxCriticalAlerts || highAlerts.length > maxHighAlerts) {
-        //     core.setFailed(`CodeScanning Open Vulnerability Alerts Found: critical=${criticalAlerts.length}, high=${highAlerts.length}`);
-        // } else {
-        //     core.info('No critical or high alerts exceeding thresholds.');
-        // }
+        if (conclusion == "success") {
+            core.info("Code Scanning Alerts threshold not exceeded");
+        }
+        else {
+            core.setFailed("Code Scanning Alerts threshold exceeded");
+        }
     }
     catch (error) {
         if (error instanceof Error) {
