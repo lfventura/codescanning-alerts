@@ -31968,20 +31968,10 @@ ${BreakingMessagePRFiles}
             });
         }
         // Comment logic
-        if (!prNumber) {
-            core.info('No PR number found. Skipping comment creation.');
-        }
-        else {
+        if (prNumber) {
             const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
             const maxCommentLength = 65530; // Maximum comment length
-            let longstring = "";
-            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            const charactersLength = characters.length;
-            for (let i = 0; i < 2097152; i++) {
-                longstring += characters.charAt(Math.floor(Math.random() * charactersLength));
-            }
             let body = `${commentIdentifier}\n${summary}`;
-            body = `${commentIdentifier}\n${summary}\n${longstring}`;
             // Check if comment exceeds the maximum length
             if (body.length > maxCommentLength) {
                 const truncatedMessage = `\n**Truncated:** [Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`;
@@ -32017,6 +32007,9 @@ ${BreakingMessagePRFiles}
                 core.info(`Created a new comment on PR #${prNumber}`);
             }
         }
+        else {
+            core.info('No PR number found. Skipping comment creation.');
+        }
         // Decorator Logic
         if (!prNumber) {
             core.info('No PR number found. Skipping decorator creation.');
@@ -32024,6 +32017,12 @@ ${BreakingMessagePRFiles}
         else {
             core.info('Creating a decorator for the PR.');
             const checkRunName = "Code Scanning Alerts";
+            let longstring = "";
+            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const charactersLength = characters.length;
+            for (let i = 0; i < 2097152; i++) {
+                longstring += characters.charAt(Math.floor(Math.random() * charactersLength));
+            }
             // Check if a Check Run already exists
             core.info(`Checking if a Check Run already exists for ${sha}`);
             const existingCheckRuns = await octokit.rest.checks.listForRef({
@@ -32041,7 +32040,7 @@ ${BreakingMessagePRFiles}
                     check_run_id: existingCheckRun.id,
                     output: {
                         title: checkRunName,
-                        summary: summary,
+                        summary: longstring,
                         // text: "I am a text"
                         // text: summaryLines.join("\n"),
                     },
@@ -32063,7 +32062,7 @@ ${BreakingMessagePRFiles}
                         title: checkRunName,
                         // summary,
                         // text: summaryLines.join("\n"),
-                        summary: summary,
+                        summary: longstring,
                         // text: "I am a text"
                     },
                 });
