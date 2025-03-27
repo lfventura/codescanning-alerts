@@ -31973,6 +31973,20 @@ ${BreakingMessagePRFiles}
         }
         else {
             const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
+            const maxCommentLength = 65000; // Maximum comment length
+            let longstring = "";
+            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const charactersLength = characters.length;
+            for (let i = 0; i < 2097152; i++) {
+                longstring += characters.charAt(Math.floor(Math.random() * charactersLength));
+            }
+            let body = `${commentIdentifier}\n${summary}\n${longstring}`;
+            // Check if comment exceeds the maximum length
+            if (body.length > maxCommentLength) {
+                const truncatedMessage = `**Note:** The comment was truncated because its size. [Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`;
+                // Truncate the body and add the see more details link
+                body = `${commentIdentifier}\n${summary.slice(0, maxCommentLength - truncatedMessage.length)}${truncatedMessage}`;
+            }
             // Get all PR Comments
             const { data: comments } = await octokit.rest.issues.listComments({
                 owner,
@@ -31981,19 +31995,13 @@ ${BreakingMessagePRFiles}
             });
             // Procura por um comentário existente criado por esta Action
             const existingComment = comments.find((comment) => comment.body?.startsWith(commentIdentifier));
-            let longstring = "";
-            const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            const charactersLength = characters.length;
-            for (let i = 0; i < 2097152; i++) {
-                longstring += characters.charAt(Math.floor(Math.random() * charactersLength));
-            }
             if (existingComment) {
                 // Updates the existing comment
                 await octokit.rest.issues.updateComment({
                     owner,
                     repo,
                     comment_id: existingComment.id,
-                    body: `${commentIdentifier}\n${summary}\n${longstring}`,
+                    body: `${commentIdentifier}\n${summary}`,
                 });
                 console.log(`Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`);
             }
