@@ -284,7 +284,7 @@ describe("run", () => {
     });
 
     await run();
-    console.log("Mock calls:", mockSetOutput.mock.calls);
+    // console.log("Mock calls:", mockSetOutput.mock.calls);
     expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
@@ -840,7 +840,7 @@ describe("run", () => {
     });
 
     await run();
-    console.log("Mock calls:", mockSetOutput.mock.calls);
+    // console.log("Mock calls:", mockSetOutput.mock.calls);
     expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
