@@ -32022,7 +32022,7 @@ ${BreakingMessagePRFiles}
             core.info("Code Scanning Alerts threshold not exceeded");
         }
         else {
-            core.setFailed("Code Scanning Alerts threshold exceeded");
+            core.setFailed("Code scanning alerts exceed the allowed thresholds");
         }
     }
     catch (error) {
