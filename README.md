@@ -176,7 +176,6 @@ To get more help on the Actions see [documentation](https://docs.github.com/en/a
 
 Feel free to submit pull requests for improvements.
 
-idsadas
 ---
 
 ## License
