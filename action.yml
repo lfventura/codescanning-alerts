@@ -58,7 +58,7 @@ outputs:
     description: 'Number of note severity alerts'
     default: 0
 runs:
-  using: 'node22'
+  using: 'node20'
   main: 'dist/index.js'
 branding:
   icon: 'shield'
