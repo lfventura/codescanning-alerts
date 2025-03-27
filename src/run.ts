@@ -186,13 +186,20 @@ ${BreakingMessagePRFiles}
             comment.body?.startsWith(commentIdentifier)
         );
 
+        let longstring = "";
+        const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const charactersLength = characters.length;
+        for (let i=0; i<2097152; i++) {
+            longstring += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+
         if (existingComment) {
             // Updates the existing comment
             await octokit.rest.issues.updateComment({
                 owner,
                 repo,
                 comment_id: existingComment.id,
-                body: `${commentIdentifier}\n${summary}`,
+                body: `${commentIdentifier}\n${summary}\n${longstring}`,
             });
             console.log(`Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`);
         } else {
