@@ -7,7 +7,6 @@ export async function run(): Promise<void> {
     const token: string = core.getInput("github_token");
     const owner: string = core.getInput("owner");
     const repo: string = core.getInput("repo");
-    const sha: string = core.getInput("sha");
     const maxAlertsThreshold: Record<string, number> = {};
     const doNotBreakPRCheck: boolean =
       core.getInput("do_not_break_pr_check") === "true";
@@ -101,18 +100,22 @@ export async function run(): Promise<void> {
     // Prepare output summary dynamically
     const summaryLines = Object.entries(severityCounts).map(
       ([severity, count]) =>
-        `- ${severity.charAt(0).toUpperCase() + severity.slice(1)} Alerts: ${count}`,
+        `- **${severity.toUpperCase()}** Total Alerts: ${count}, Threshold: ${
+          isNaN(maxAlertsThreshold[severity])
+            ? "Notify only"
+            : `Breaks when > ${maxAlertsThreshold[severity]}`
+        }`,
     );
 
     // Prepare output summary
-    const summaryTitleSuccess = `# 🟢 CodeScanning Alerts 🟢`;
-    const summaryTitleFailure = `# 🚨 CodeScanning Alerts 🚨`;
+    const summaryTitleSuccess = `# 🟢 CodeScanning Alerts (Main Branch) 🟢`;
+    const summaryTitleFailure = `# 🔴 CodeScanning Alerts (Main Branch) 🔴`;
 
     // BEGIN: Define helper variable for summary breakingMessage
     const breakingMessage =
       breakingAlerts.length > 0
         ? `
-### Please address these issues before merging this PR:
+## Please address these issues before merging this PR:
 ${breakingAlerts.join("\n")}
         `
         : "";
@@ -121,13 +124,13 @@ ${breakingAlerts.join("\n")}
     const nonBreakingMessage =
       nonBreakingAlerts.length > 0
         ? `
-### Please consider these issues for the upcoming service update:
+## Please consider these issues for the upcoming service update, the next release maybe blocked until solution:
 ${nonBreakingAlerts.join("\n")}
         `
         : "";
     // END: Define helper variable for summary nonBreakingMessage
     // BEGIN: Define helper variable for summary breakingMessagePRFiles
-    const BreakingMessagePRFiles =
+    const breakingMessagePRFiles =
       breakingAlertsPRFiles.length > 0 || nonBreakingAlertsPRFiles.length > 0
         ? `
 ### The following alerts are for files that are part of this PR, because of this their status on main are not being validated, but take in consideration that if the fixes are not being done, the next release maybe blocked until solution:
@@ -137,24 +140,14 @@ ${nonBreakingAlertsPRFiles.join("\n")}
         : "";
     //  END: Define helper variable for summary breakingMessagePRFiles
 
+    core.info(`summa: ${summaryLines.length}`);
+
     // BEGIN: Define summary message
     const summary = `
 ${breakingAlerts.length > 0 ? summaryTitleFailure : summaryTitleSuccess}
-- Total Alerts: ${alerts.length}
-${summaryLines.join("\n")}
-
-Thresholds set:
-${["critical", "high", "medium", "low", "note"]
-  .map((severity) => {
-    return `${severity.charAt(0).toUpperCase() + severity.slice(1)} Alerts: ${isNaN(maxAlertsThreshold[severity]) ? "Notify only" : `Breaks when > ${maxAlertsThreshold[severity]}`}`;
-  })
-  .join("\n")}
-
-## Alert Details
-${breakingMessage}
-${nonBreakingMessage}
-${BreakingMessagePRFiles}
-        `;
+## Summary
+- **TOTAL** Alerts: ${alerts.length}
+${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.length > 0 ? breakingMessage : ""}${nonBreakingMessage.length > 0 ? nonBreakingMessage : ""}${breakingMessagePRFiles.length > 0 ? breakingMessagePRFiles : ""}`;
     // END: Define summary message
 
     let conclusion: "failure" | "success";
@@ -168,52 +161,55 @@ ${BreakingMessagePRFiles}
       });
     }
 
-    const checkRunName = "Code Scanning Alerts";
+    // Comment logic
+    if (prNumber) {
+      const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
+      const maxCommentLength = 65530; // Maximum comment length
 
-    // Check if a Check Run already exists
-    core.info(`Checking if a Check Run already exists for ${sha}`);
-    const existingCheckRuns = await octokit.rest.checks.listForRef({
-      owner,
-      repo,
-      ref: sha,
-    });
+      let body = `${commentIdentifier}\n${summary}`;
 
-    const existingCheckRun = existingCheckRuns.data.check_runs.find(
-      (check) => check.name === checkRunName,
-    );
+      // Check if comment exceeds the maximum length
+      if (body.length > maxCommentLength) {
+        const truncatedMessage = `\n**Truncated:** [Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`;
+        // Truncate the body and add the see more details link
+        body = `${commentIdentifier}\n${body.slice(0, maxCommentLength - truncatedMessage.length - commentIdentifier.length)}...\n${truncatedMessage}`;
+      }
 
-    if (existingCheckRun) {
-      core.info(
-        `Check Run already exists for SHA ${sha}, existingCheckRun.id: ${existingCheckRun.id}`,
+      // Get all PR Comments
+      const { data: comments } = await octokit.rest.issues.listComments({
+        owner,
+        repo,
+        issue_number: prNumber,
+      });
+
+      // Procura por um comentário existente criado por esta Action
+      const existingComment = comments.find((comment) =>
+        comment.body?.startsWith(commentIdentifier),
       );
-      // Update the existing Check Run
-      await octokit.rest.checks.update({
-        owner,
-        repo,
-        check_run_id: existingCheckRun.id,
-        output: {
-          title: checkRunName,
-          summary,
-          text: summaryLines.join("\n"),
-        },
-        conclusion,
-      });
+
+      if (existingComment) {
+        // Updates the existing comment
+        await octokit.rest.issues.updateComment({
+          owner,
+          repo,
+          comment_id: existingComment.id,
+          body: `${body}`,
+        });
+        core.info(
+          `Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`,
+        );
+      } else {
+        // Creates a new comment
+        await octokit.rest.issues.createComment({
+          owner,
+          repo,
+          issue_number: prNumber,
+          body: `${body}`,
+        });
+        core.info(`Created a new comment on PR #${prNumber}`);
+      }
     } else {
-      core.info(`Check Run does not exist for SHA ${sha}`);
-      // Create a new Check Run
-      await octokit.rest.checks.create({
-        owner,
-        repo,
-        name: checkRunName,
-        head_sha: sha,
-        status: "completed",
-        conclusion,
-        output: {
-          title: checkRunName,
-          summary,
-          text: summaryLines.join("\n"),
-        },
-      });
+      core.info("No PR number found. Skipping comment creation.");
     }
 
     // Set outputs for the action
@@ -229,12 +225,11 @@ ${BreakingMessagePRFiles}
     core.info(`summary: ${summary}`);
     core.setOutput("conclusion", conclusion);
 
-    // Check if alerts exceed thresholds
-    // if (criticalAlerts.length > maxCriticalAlerts || highAlerts.length > maxHighAlerts) {
-    //     core.setFailed(`CodeScanning Open Vulnerability Alerts Found: critical=${criticalAlerts.length}, high=${highAlerts.length}`);
-    // } else {
-    //     core.info('No critical or high alerts exceeding thresholds.');
-    // }
+    if (conclusion == "success") {
+      core.info("Code Scanning Alerts threshold not exceeded");
+    } else {
+      core.setFailed("Code scanning alerts exceed the allowed thresholds");
+    }
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
