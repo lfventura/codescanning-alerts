@@ -16,7 +16,7 @@ inputs:
     required: false
   sha:
     description: The commit SHA to check for alerts
-    default: ${{ github.sha }}
+    default: ${{ github.event.pull_request.head.sha || github.sha }}
     required: false
   max_high_alerts:
     description: 'Maximum allowed high severity alerts'
