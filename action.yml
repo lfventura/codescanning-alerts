@@ -44,19 +44,13 @@ outputs:
     description: 'Total number of alerts'
   critical_alerts:
     description: 'Number of critical severity alerts'
-    default: 0
   high_alerts:
     description: 'Number of high severity alerts'
-    default: 0
   medium_alerts:
-    description: 'Number of medium severity alerts'
-    default: 0
   low_alerts:
     description: 'Number of low severity alerts'
-    default: 0
   note_alerts:
     description: 'Number of note severity alerts'
-    default: 0
 runs:
   using: 'node20'
   main: 'dist/index.js'
