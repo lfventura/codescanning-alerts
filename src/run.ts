@@ -168,54 +168,59 @@ ${BreakingMessagePRFiles}
       });
     }
 
-    const checkRunName = "Code Scanning Alerts";
-
-    // Check if a Check Run already exists
-    core.info(`Checking if a Check Run already exists for ${sha}`);
-    const existingCheckRuns = await octokit.rest.checks.listForRef({
-      owner,
-      repo,
-      ref: sha,
-    });
-
-    const existingCheckRun = existingCheckRuns.data.check_runs.find(
-      (check) => check.name === checkRunName,
-    );
-
-    if (existingCheckRun) {
-      core.info(
-        `Check Run already exists for SHA ${sha}, existingCheckRun.id: ${existingCheckRun.id}`,
-      );
-      // Update the existing Check Run
-      await octokit.rest.checks.update({
-        owner,
-        repo,
-        check_run_id: existingCheckRun.id,
-        output: {
-          title: checkRunName,
-          summary,
-          text: summaryLines.join("\n"),
-        },
-        conclusion,
-      });
-    } else {
-      core.info(`Check Run does not exist for SHA ${sha}`);
-      // Create a new Check Run
-      await octokit.rest.checks.create({
-        owner,
-        repo,
-        name: checkRunName,
-        head_sha: sha,
-        status: "completed",
-        conclusion,
-        output: {
-          title: checkRunName,
-          summary,
-          text: summaryLines.join("\n"),
-        },
-      });
+    if (!prNumber) {
+        core.info('No PR number found. Skipping decorator creation.');
     }
+    else {
+        core.info('Creating a decorator for the PR.');    
+        const checkRunName = "Code Scanning Alerts";
 
+        // Check if a Check Run already exists
+        core.info(`Checking if a Check Run already exists for ${sha}`);
+        const existingCheckRuns = await octokit.rest.checks.listForRef({
+        owner,
+        repo,
+        ref: sha,
+        });
+
+        const existingCheckRun = existingCheckRuns.data.check_runs.find(
+        (check) => check.name === checkRunName,
+        );
+
+        if (existingCheckRun) {
+            core.info(
+                `Check Run already exists for SHA ${sha}, existingCheckRun.id: ${existingCheckRun.id}`,
+            );
+            // Update the existing Check Run
+            await octokit.rest.checks.update({
+                owner,
+                repo,
+                check_run_id: existingCheckRun.id,
+                output: {
+                title: checkRunName,
+                summary,
+                text: summaryLines.join("\n"),
+                },
+                conclusion,
+            });
+        } else {
+            core.info(`Check Run does not exist for SHA ${sha}`);
+            // Create a new Check Run
+            await octokit.rest.checks.create({
+                owner,
+                repo,
+                name: checkRunName,
+                head_sha: sha,
+                status: "completed",
+                conclusion,
+                output: {
+                title: checkRunName,
+                summary,
+                text: summaryLines.join("\n"),
+                },
+            });
+        }
+    }
     // Set outputs for the action
     core.setOutput("total_alerts", alerts.length);
     ["critical", "high", "medium", "low", "note"].forEach((severity) => {
