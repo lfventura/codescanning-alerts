@@ -11,6 +11,16 @@ on:
   schedule:
     - cron: '33 14 2 * *'
 
+permissions:
+  security-events: write
+  pull-requests: write
+  packages: read
+  actions: read
+  contents: read
+  deployments: write
+  issues: write
+  checks: write
+
 jobs:
   languages:
     runs-on: ubuntu-latest
