@@ -172,7 +172,7 @@ ${BreakingMessagePRFiles}
         core.info('No PR number found. Skipping comment creation.');
     }
     else {
-        const commentIdentifier = "<!-- Code Scanning Alerts Comment lfventura -->"; // Unique identifier
+        const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
 
         // Get all PR Comments
         const { data: comments } = await octokit.rest.issues.listComments({
@@ -192,7 +192,7 @@ ${BreakingMessagePRFiles}
                 owner,
                 repo,
                 comment_id: existingComment.id,
-                body: summary,
+                body: `${existingComment}\n${summary}`,
             });
             console.log(`Updated existing comment (ID: ${existingComment.id}) on PR #${prNumber}`);
         } else {
@@ -201,7 +201,7 @@ ${BreakingMessagePRFiles}
                 owner,
                 repo,
                 issue_number: prNumber,
-                body: summary,
+                body: `${existingComment}\n${summary}`,
             });
             console.log(`Created a new comment on PR #${prNumber}`);
         }
