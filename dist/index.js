@@ -31987,7 +31987,7 @@ ${BreakingMessagePRFiles}
             if (existingCheckRun) {
                 core.info(`Check Run already exists for SHA ${sha}, existingCheckRun.id: ${existingCheckRun.id}`);
                 // Update the existing Check Run
-                await octokit.rest.checks.update({
+                const response = await octokit.rest.checks.update({
                     owner,
                     repo,
                     check_run_id: existingCheckRun.id,
@@ -31998,11 +31998,12 @@ ${BreakingMessagePRFiles}
                     },
                     conclusion,
                 });
+                core.info(`Check Run updated: ${JSON.stringify(response, null, 2)}`);
             }
             else {
                 core.info(`Check Run does not exist for SHA ${sha}`);
                 // Create a new Check Run
-                await octokit.rest.checks.create({
+                const response = await octokit.rest.checks.create({
                     owner,
                     repo,
                     name: checkRunName,
@@ -32015,6 +32016,7 @@ ${BreakingMessagePRFiles}
                         text: summaryLines.join("\n"),
                     },
                 });
+                core.info(`Check Run updated: ${JSON.stringify(response, null, 2)}`);
             }
         }
         // Set outputs for the action
