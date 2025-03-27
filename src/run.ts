@@ -101,7 +101,11 @@ export async function run(): Promise<void> {
     // Prepare output summary dynamically
     const summaryLines = Object.entries(severityCounts).map(
       ([severity, count]) =>
-        `- ${severity.charAt(0).toUpperCase() + severity.slice(1)} Alerts: ${count}`,
+        `- ${severity.charAt(0).toUpperCase() + severity.slice(1)} Total Alerts: ${count}, Threshold: ${
+          isNaN(maxAlertsThreshold[severity])
+            ? "Notify only"
+            : `Breaks when > ${maxAlertsThreshold[severity]}`
+        }`,
     );
 
     // Prepare output summary
@@ -112,7 +116,7 @@ export async function run(): Promise<void> {
     const breakingMessage =
       breakingAlerts.length > 0
         ? `
-### Please address these issues before merging this PR:
+## Please address these issues before merging this PR:
 ${breakingAlerts.join("\n")}
         `
         : "";
@@ -121,7 +125,7 @@ ${breakingAlerts.join("\n")}
     const nonBreakingMessage =
       nonBreakingAlerts.length > 0
         ? `
-### Please consider these issues for the upcoming service update:
+## Please consider these issues for the upcoming service update:
 ${nonBreakingAlerts.join("\n")}
         `
         : "";
@@ -140,19 +144,14 @@ ${nonBreakingAlertsPRFiles.join("\n")}
     // BEGIN: Define summary message
     const summary = `
 ${breakingAlerts.length > 0 ? summaryTitleFailure : summaryTitleSuccess}
+## Summary
 - Total Alerts: ${alerts.length}
 ${summaryLines.join("\n")}
 
-Thresholds set:
-${["critical", "high", "medium", "low", "note"]
-  .map((severity) => {
-    return `${severity.charAt(0).toUpperCase() + severity.slice(1)} Alerts: ${isNaN(maxAlertsThreshold[severity]) ? "Notify only" : `Breaks when > ${maxAlertsThreshold[severity]}`}`;
-  })
-  .join("\n")}
-
-## Alert Details
 ${breakingMessage}
+
 ${nonBreakingMessage}
+
 ${BreakingMessagePRFiles}
         `;
     // END: Define summary message
