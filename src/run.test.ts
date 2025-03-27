@@ -114,6 +114,9 @@ describe("run", () => {
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts_threshold", 0);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "failure");
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      "Code scanning alerts exceed the allowed thresholds"
+    );
   });
 
   it("should not fail when have alerts but not exceed thresholds", async () => {
@@ -339,6 +342,9 @@ describe("run", () => {
     expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "failure");
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      "Code scanning alerts exceed the allowed thresholds"
+    );
   });
 
   it("should handle PR-specific alerts and not fail due file in PR is PR with alert", async () => {
@@ -546,6 +552,9 @@ describe("run", () => {
     expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "failure");
+    expect(mockSetFailed).toHaveBeenCalledWith(
+      "Code scanning alerts exceed the allowed thresholds"
+    );
   });
 
   it("should handle PR-specific alerts and not fail due do_not_break_pr_checks, creating new comment", async () => {
