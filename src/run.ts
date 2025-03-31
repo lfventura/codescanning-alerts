@@ -245,10 +245,8 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
-      console.log(String(error));
     } else {
       core.setFailed(String(error));
-      console.log(String(error));
     }
   }
 }
