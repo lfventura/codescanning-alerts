@@ -182,7 +182,7 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
 
     // Action Summary logic
     core.summary.addHeading("Code Scanning Alerts Summary");
-    core.summary.addRaw(summary, true);
+    core.summary.addRaw(body, true);
     await core.summary.write({ overwrite: true });
 
     // Comment logic
