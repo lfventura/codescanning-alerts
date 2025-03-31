@@ -162,20 +162,31 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
       });
     }
 
+    // Declares the final summary message
+    const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
+    const footerMessage = `\n[Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`; // Footer message
+    const maxCommentLength = 65530; // Maximum comment length
+
+    let body = `${commentIdentifier}\n${summary}`;
+    let bodyWithFooter = `${body}${footerMessage}`;
+
+    // Check if comment exceeds the maximum length
+    if (bodyWithFooter.length > maxCommentLength) {
+      const truncatedMessage = `\n**Truncated:** ${footerMessage}`;
+      // Truncate the body and add the see more details link
+      body = `${commentIdentifier}\n${body.slice(0, maxCommentLength - truncatedMessage.length - commentIdentifier.length)}...\n${truncatedMessage}`;
+    }
+    else {
+      body = bodyWithFooter;
+    }
+
+    // Action Summary logic
+    core.summary.addHeading("Code Scanning Alerts Summary");
+    core.summary.addRaw(summary, true);
+    await core.summary.write({ overwrite: true });
+
     // Comment logic
     if (prNumber) {
-      const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
-      const maxCommentLength = 65530; // Maximum comment length
-
-      let body = `${commentIdentifier}\n${summary}`;
-
-      // Check if comment exceeds the maximum length
-      if (body.length > maxCommentLength) {
-        const truncatedMessage = `\n**Truncated:** [Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`;
-        // Truncate the body and add the see more details link
-        body = `${commentIdentifier}\n${body.slice(0, maxCommentLength - truncatedMessage.length - commentIdentifier.length)}...\n${truncatedMessage}`;
-      }
-
       // Get all PR Comments
       const { data: comments } = await octokit.rest.issues.listComments({
         owner,
@@ -234,8 +245,10 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
   } catch (error) {
     if (error instanceof Error) {
       core.setFailed(error.message);
+      console.log(String(error));
     } else {
       core.setFailed(String(error));
+      console.log(String(error));
     }
   }
 }
