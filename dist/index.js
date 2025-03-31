@@ -31843,9 +31843,10 @@ async function run() {
         const token = core.getInput("github_token");
         const owner = core.getInput("owner");
         const repo = core.getInput("repo");
-        const maxAlertsThreshold = {};
         const doNotBreakPRCheck = core.getInput("do_not_break_pr_check") === "true";
-        ["critical", "high", "medium", "low", "note"].forEach((severity) => {
+        const allSeverities = ["critical", "high", "medium", "low", "note"];
+        const maxAlertsThreshold = {};
+        allSeverities.forEach((severity) => {
             maxAlertsThreshold[severity] = parseInt(core.getInput(`max_${severity}_alerts`), 10);
         });
         const octokit = github.getOctokit(token);
@@ -31953,24 +31954,34 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
         let conclusion;
         conclusion = "success";
         if (!prNumber || (prNumber && !doNotBreakPRCheck)) {
-            ["critical", "high", "medium", "low", "note"].forEach((severity) => {
+            allSeverities.forEach((severity) => {
                 if (severityCounts[severity] > maxAlertsThreshold[severity]) {
                     conclusion = "failure";
                     return;
                 }
             });
         }
+        // Declares the final summary message
+        const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
+        const footerMessage = `\n[Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`; // Footer message
+        const maxCommentLength = 65530; // Maximum comment length
+        let body = `${commentIdentifier}\n${summary}`;
+        let bodyWithFooter = `${body}${footerMessage}`;
+        // Check if comment exceeds the maximum length
+        if (bodyWithFooter.length > maxCommentLength) {
+            const truncatedMessage = `\n**Truncated:** ${footerMessage}`;
+            // Truncate the body and add the see more details link
+            body = `${commentIdentifier}\n${body.slice(0, maxCommentLength - truncatedMessage.length - commentIdentifier.length)}...\n${truncatedMessage}`;
+        }
+        else {
+            body = bodyWithFooter;
+        }
+        // Action Summary logic
+        core.summary.addHeading("Code Scanning Alerts Summary");
+        core.summary.addRaw(body, true);
+        await core.summary.write({ overwrite: true });
         // Comment logic
         if (prNumber) {
-            const commentIdentifier = "<!-- Code Scanning Alerts Comment -->"; // Unique identifier
-            const maxCommentLength = 65530; // Maximum comment length
-            let body = `${commentIdentifier}\n${summary}`;
-            // Check if comment exceeds the maximum length
-            if (body.length > maxCommentLength) {
-                const truncatedMessage = `\n**Truncated:** [Go to CodeScanning](https://github.com/${owner}/${repo}/security/code-scanning).`;
-                // Truncate the body and add the see more details link
-                body = `${commentIdentifier}\n${body.slice(0, maxCommentLength - truncatedMessage.length - commentIdentifier.length)}...\n${truncatedMessage}`;
-            }
             // Get all PR Comments
             const { data: comments } = await octokit.rest.issues.listComments({
                 owner,
@@ -32005,7 +32016,7 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
         }
         // Set outputs for the action
         core.setOutput("total_alerts", alerts.length);
-        ["critical", "high", "medium", "low", "note"].forEach((severity) => {
+        allSeverities.forEach((severity) => {
             core.setOutput(`${severity}_alerts`, severityCounts[severity] || 0);
             core.setOutput(`${severity}_alerts_threshold`, isNaN(maxAlertsThreshold[severity]) ? -1 : maxAlertsThreshold[severity]);
         });
