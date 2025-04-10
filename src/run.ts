@@ -9,7 +9,14 @@ export async function run(): Promise<void> {
     const repo: string = core.getInput("repo");
     const doNotBreakPRCheck: boolean =
       core.getInput("do_not_break_pr_check") === "true";
-    const allSeverities = ["critical", "high", "medium", "low", "note"];  
+    const skipNoteChecks: boolean = 
+      core.getInput("skip_note_checks") === "true";
+
+    const allSeverities = ["critical", "high", "medium", "low", "note"];
+    // if (skipNoteChecks) {
+    //   allSeverities = ["critical", "high", "medium", "low"];
+    // }
+  
     const maxAlertsThreshold: Record<string, number> = {};
       allSeverities.forEach((severity) => {
       maxAlertsThreshold[severity] = parseInt(
@@ -64,6 +71,9 @@ export async function run(): Promise<void> {
     alerts.forEach((alert) => {
       const severity =
         alert.rule.security_severity_level || alert.rule.severity || "unknown";
+      if (severity == "note" && skipNoteChecks) {
+        return;
+      }
       // Check if the alert file is part of the PR
       const alertFile = alert.most_recent_instance.location?.path || ""; // || '' to avoid undefined, but is it necessary?
       const isFileInPR = prFiles.includes(alertFile);
@@ -141,8 +151,6 @@ ${nonBreakingAlertsPRFiles.join("\n")}
         : "";
     //  END: Define helper variable for summary breakingMessagePRFiles
 
-    core.info(`summa: ${summaryLines.length}`);
-
     // BEGIN: Define summary message
     const summary = `
 ${breakingAlerts.length > 0 ? summaryTitleFailure : summaryTitleSuccess}
@@ -155,6 +163,9 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
     conclusion = "success";
     if (!prNumber || (prNumber && !doNotBreakPRCheck)) {
      allSeverities.forEach((severity) => {
+        if (severity == "note" && skipNoteChecks) {
+          return;
+        }
         if (severityCounts[severity] > maxAlertsThreshold[severity]) {
           conclusion = "failure";
           return;
@@ -181,9 +192,9 @@ ${summaryLines.length > 0 ? summaryLines.join("\n") : ""}${breakingMessage.lengt
     }
 
     // Action Summary logic
-    core.summary.addHeading("Code Scanning Alerts Summary");
-    core.summary.addRaw(body, true);
-    await core.summary.write({ overwrite: true });
+    // core.summary.addHeading("Code Scanning Alerts Summary");
+    // core.summary.addRaw(body, true);
+    // await core.summary.write({ overwrite: true });
 
     // Comment logic
     if (prNumber) {

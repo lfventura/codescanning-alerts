@@ -34,6 +34,11 @@ inputs:
     required: false
     default: false
     type: boolean
+  skip_note_checks:
+    description: 'Skip note severity checks'
+    required: false
+    default: false
+    type: boolean
   
 outputs:
   total_alerts:
