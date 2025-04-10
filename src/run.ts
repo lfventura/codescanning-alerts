@@ -148,8 +148,6 @@ ${nonBreakingAlertsPRFiles.join("\n")}
         : "";
     //  END: Define helper variable for summary breakingMessagePRFiles
 
-    core.info(`summa: ${summaryLines.length}`);
-
     // BEGIN: Define summary message
     const summary = `
 ${breakingAlerts.length > 0 ? summaryTitleFailure : summaryTitleSuccess}
