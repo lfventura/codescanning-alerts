@@ -9,7 +9,14 @@ export async function run(): Promise<void> {
     const repo: string = core.getInput("repo");
     const doNotBreakPRCheck: boolean =
       core.getInput("do_not_break_pr_check") === "true";
-    const allSeverities = ["critical", "high", "medium", "low", "note"];  
+    const skipNoteChecks: boolean = 
+      core.getInput("skip_note_checks") === "true";
+
+    let allSeverities = ["critical", "high", "medium", "low", "note"];
+    if (skipNoteChecks) {
+      allSeverities = ["critical", "high", "medium", "low"];
+    }
+    
     const maxAlertsThreshold: Record<string, number> = {};
       allSeverities.forEach((severity) => {
       maxAlertsThreshold[severity] = parseInt(
