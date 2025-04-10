@@ -31844,7 +31844,11 @@ async function run() {
         const owner = core.getInput("owner");
         const repo = core.getInput("repo");
         const doNotBreakPRCheck = core.getInput("do_not_break_pr_check") === "true";
-        const allSeverities = ["critical", "high", "medium", "low", "note"];
+        const skipNoteChecks = core.getInput("skip_note_checks") === "true";
+        let allSeverities = ["critical", "high", "medium", "low", "note"];
+        if (skipNoteChecks) {
+            allSeverities = ["critical", "high", "medium", "low"];
+        }
         const maxAlertsThreshold = {};
         allSeverities.forEach((severity) => {
             maxAlertsThreshold[severity] = parseInt(core.getInput(`max_${severity}_alerts`), 10);
