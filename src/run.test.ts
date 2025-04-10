@@ -119,6 +119,43 @@ describe("run", () => {
     );
   });
 
+  it("should not fail when there are only note alerts and note is being skipped", async () => {
+    mockGetInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        github_token: "fake-token",
+        owner: "test-owner",
+        repo: "test-repo",
+        sha: "test-sha",
+        do_not_break_pr_check: "false",
+        max_critical_alerts: "200",
+        max_high_alerts: "200",
+        max_medium_alerts: "200",
+        max_low_alerts: "200",
+        max_note_alerts: "0",
+        skip_note_checks: "true",
+      };
+      return inputs[name];
+    });
+
+    mockOctokit.paginate.mockResolvedValueOnce([
+      {
+        rule: {
+          security_severity_level: "critical",
+          description: "Critical issue",
+        },
+        html_url: "http://example.com/1",
+        most_recent_instance: { location: { path: "file3.js" } },
+      },
+    ]); // One critical alert
+
+    await run();
+
+    expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 1);
+    expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 1);
+    expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts_threshold", 200);
+    expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
+  });
+
   it("should not fail when have alerts but not exceed thresholds", async () => {
     mockGetInput.mockImplementation((name: string) => {
       const inputs: Record<string, string> = {
