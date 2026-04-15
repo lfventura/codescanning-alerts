@@ -54,7 +54,7 @@ outputs:
   note_alerts:
     description: 'Number of note severity alerts'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
 branding:
   icon: 'shield'
