@@ -883,6 +883,44 @@ describe("run", () => {
     expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
   });
 
+  it("should succeed with 0 alerts when no analysis exists (404)", async () => {
+    mockGetInput.mockImplementation((name: string) => {
+      const inputs: Record<string, string> = {
+        github_token: "fake-token",
+        owner: "test-owner",
+        repo: "test-repo",
+        sha: "test-sha",
+        do_not_break_pr_check: "false",
+        max_critical_alerts: "0",
+        max_high_alerts: "0",
+        max_medium_alerts: "0",
+        max_low_alerts: "0",
+        max_note_alerts: "0",
+      };
+      return inputs[name];
+    });
+
+    // Ensure no PR context so the PR files fetch is skipped
+    (github.context as any).payload = {};
+
+    const notFoundError: any = new Error(
+      "no analysis found - https://docs.github.com/rest/code-scanning/code-scanning#list-code-scanning-alerts-for-a-repository",
+    );
+    notFoundError.status = 404;
+    mockOctokit.paginate.mockRejectedValueOnce(notFoundError);
+
+    await run();
+
+    expect(mockSetOutput).toHaveBeenCalledWith("total_alerts", 0);
+    expect(mockSetOutput).toHaveBeenCalledWith("critical_alerts", 0);
+    expect(mockSetOutput).toHaveBeenCalledWith("high_alerts", 0);
+    expect(mockSetOutput).toHaveBeenCalledWith("medium_alerts", 0);
+    expect(mockSetOutput).toHaveBeenCalledWith("low_alerts", 0);
+    expect(mockSetOutput).toHaveBeenCalledWith("note_alerts", 0);
+    expect(mockSetOutput).toHaveBeenCalledWith("conclusion", "success");
+    expect(mockSetFailed).not.toHaveBeenCalled();
+  });
+
   it("should handle errors gracefully", async () => {
     const errorMessage = "Something went wrong";
     mockGetInput.mockImplementation(() => {
