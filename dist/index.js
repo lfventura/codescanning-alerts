@@ -35644,12 +35644,24 @@ async function run() {
         });
         const octokit = github.getOctokit(token);
         // Fetch Code Scanning Alerts
-        let alerts = await octokit.paginate(octokit.rest.codeScanning.listAlertsForRepo, {
-            owner,
-            repo,
-            state: "open",
-            per_page: 100, // Fetch up to 100 alerts per page
-        });
+        let alerts;
+        try {
+            alerts = await octokit.paginate(octokit.rest.codeScanning.listAlertsForRepo, {
+                owner,
+                repo,
+                state: "open",
+                per_page: 100, // Fetch up to 100 alerts per page
+            });
+        }
+        catch (error) {
+            if (error.status === 404) {
+                core.info("No code scanning analyses found for this repository. Treating as 0 alerts.");
+                alerts = [];
+            }
+            else {
+                throw error;
+            }
+        }
         // Fetch files changed in the PR. If it's a PR workflow we are going to use this to filter alerts
         const prNumber = github.context.payload.pull_request?.number;
         let prFiles = [];
